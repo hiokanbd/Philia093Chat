@@ -31,7 +31,7 @@ object ChatClient {
         try {
             val body = JSONObject().apply {
                 put("message", message)
-                put("user_id", "android")
+                put("user_id", "hezi")
             }
 
             val request = Request.Builder()
