@@ -117,45 +117,53 @@ fun SettingsScreen(onBack: () -> Unit) {
             verticalArrangement = Arrangement.spacedBy(16.dp),
             contentPadding = PaddingValues(vertical = 16.dp)
         ) {
-            // ── API 配置 ──
+            // ── API 配置说明 ──
             item {
-                SectionHeader("🔑 DeepSeek API 配置")
+                SectionHeader("🔑 API Key 管理")
             }
             item {
-                OutlinedTextField(
-                    value = apiKey,
-                    onValueChange = { apiKey = it },
-                    label = { Text("API Key") },
-                    placeholder = { Text("sk-...") },
-                    visualTransformation = PasswordVisualTransformation(),
+                Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp),
-                    singleLine = true
-                )
-            }
-            item {
-                OutlinedTextField(
-                    value = apiBase,
-                    onValueChange = { apiBase = it },
-                    label = { Text("API 接口地址") },
-                    enabled = false,  // DeepSeek official only
-                    supportingText = { Text("仅支持 DeepSeek 官方接口", fontSize = 11.sp) },
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp),
-                    singleLine = true
-                )
-            }
-            item {
-                Button(
-                    onClick = {
-                        scope.launch {
-                            AppSettings.setApiKey(context, apiKey.trim())
-                        }
-                    },
-                    colors = ButtonDefaults.buttonColors(containerColor = PinkCherry),
-                    shape = RoundedCornerShape(12.dp)
+                    colors = CardDefaults.cardColors(containerColor = Color.White)
                 ) {
-                    Text("保存 API Key", color = Color.White)
+                    Column(modifier = Modifier.padding(14.dp)) {
+                        Text(
+                            "API Key 在 Termux 里配置，无需在 App 重复输入",
+                            color = TextMauve,
+                            fontWeight = FontWeight.Medium,
+                            fontSize = 14.sp
+                        )
+                        Spacer(Modifier.height(8.dp))
+                        Text(
+                            "配置路径：~/xilian-agent/.env\n" +
+                            "修改后重启昔涟生效",
+                            fontSize = 12.sp,
+                            color = Color.Gray,
+                            lineHeight = 18.sp
+                        )
+                    }
+                }
+            }
+
+            // ── 常见问题 ──
+            item { SectionHeader("🛟 常见报错与解决") }
+            item {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color.White)
+                ) {
+                    Column(modifier = Modifier.padding(14.dp)) {
+                        ErrorHelpItem("API Key 无效或过期",
+                            "Termux 里执行：\nnano ~/xilian-agent/.env\n修改 DEEPSEEK_API_KEY 为有效 Key\n保存后重启昔涟")
+                        HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+                        ErrorHelpItem("API 额度用完",
+                            "前往 platform.deepseek.com 充值\n或更换新的 API Key")
+                        HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+                        ErrorHelpItem("连接不上",
+                            "1. 确认 Termux 已运行 bash ~/xilian.sh\n2. 确认手机网络正常\n3. 确认 api.deepseek.com 可访问")
+                    }
                 }
             }
 
@@ -434,5 +442,14 @@ fun SettingRow(label: String, content: @Composable () -> Unit) {
     ) {
         Text(label, color = TextMauve, fontWeight = FontWeight.Medium)
         content()
+    }
+}
+
+@Composable
+fun ErrorHelpItem(title: String, solution: String) {
+    Column {
+        Text(title, color = Color(0xFFE57373), fontWeight = FontWeight.Medium, fontSize = 13.sp)
+        Spacer(Modifier.height(4.dp))
+        Text(solution, color = Color.Gray, fontSize = 12.sp, lineHeight = 18.sp)
     }
 }

@@ -124,10 +124,17 @@ fun ChatScreen(onOpenSettings: () -> Unit) {
         scope.launch {
             val result = ChatClient.send(msg, apiKey)
             messages = messages.filter { it != loadingMsg }
-            messages = messages + Message(
-                text = if (result.error != null) result.error else result.reply,
-                isUser = false
-            )
+            if (result.error != null) {
+                val errorText = buildString {
+                    append(result.error)
+                    if (result.help != null) {
+                        append("\n\n💡 ${result.help}")
+                    }
+                }
+                messages = messages + Message(text = errorText, isUser = false)
+            } else {
+                messages = messages + Message(text = result.reply, isUser = false)
+            }
         }
     }
 

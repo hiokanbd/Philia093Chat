@@ -22,7 +22,9 @@ object ChatClient {
 
     data class ChatResult(
         val reply: String,
-        val error: String? = null
+        val error: String? = null,
+        val errorCode: String? = null,
+        val help: String? = null
     )
 
     suspend fun send(message: String, apiKey: String = ""): ChatResult = withContext(Dispatchers.IO) {
@@ -30,9 +32,6 @@ object ChatClient {
             val body = JSONObject().apply {
                 put("message", message)
                 put("user_id", "android")
-                if (apiKey.isNotBlank()) {
-                    put("deepseek_key", apiKey)
-                }
             }
 
             val request = Request.Builder()
@@ -43,15 +42,23 @@ object ChatClient {
             val response = client.newCall(request).execute()
             val json = JSONObject(response.body?.string() ?: "{}")
 
+            // 结构化错误
             if (json.has("error")) {
-                ChatResult("", json.getString("error"))
+                val code = json.optString("error", "")
+                if (code == "api_key_invalid" || code == "api_quota_exhausted" || code == "network_unreachable") {
+                    ChatResult("", json.optString("message", ""), code, json.optString("help", ""))
+                } else {
+                    ChatResult("", json.optString("message", json.getString("error")))
+                }
             } else {
                 ChatResult(json.optString("reply", ""))
             }
         } catch (e: java.net.ConnectException) {
-            ChatResult("", "AI 还没醒来呢……\n请先在 Termux 里运行 bash ~/xilian.sh 启动服务哦 ♪")
+            ChatResult("",
+                error = "AI 还没醒来呢…",
+                help = "请在 Termux 里运行 bash ~/xilian.sh 启动服务后重试")
         } catch (e: Exception) {
-            ChatResult("", "连接出错了：${e.message}")
+            ChatResult("", error = "连接出错了：${e.message}")
         }
     }
 
